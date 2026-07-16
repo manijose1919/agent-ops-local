@@ -32,3 +32,12 @@ class AnalyticsSummary(BaseModel):
     by_model: Dict[str, float] = Field(..., description="Cost broken down by model")
     by_task: Dict[str, float] = Field(..., description="Cost broken down by task name")
     by_agent: Dict[str, float] = Field(default_factory=dict, description="Cost broken down by agent ID")
+
+class AnomalyReport(BaseModel):
+    call_id: int
+    task_name: str
+    cost: float
+    avg_cost: float
+    total_tokens: int
+    avg_tokens: float
+    severity: str = Field(..., description="e.g. HIGH, MEDIUM")

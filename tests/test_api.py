@@ -68,3 +68,48 @@ def test_get_analytics_summary():
     assert data["total_cost"] >= 0.0015
     assert "by_model" in data
     assert "by_task" in data
+
+def test_get_anomalies():
+    # Insert 5 normal calls
+    for _ in range(5):
+        client.post(
+            "/api/v1/ingest",
+            json={
+                "task_name": "anomaly_task",
+                "model": "gpt-3.5-turbo",
+                "prompt": "Hello",
+                "response": "World",
+                "latency_ms": 100,
+                "prompt_tokens": 1000,
+                "completion_tokens": 10,
+                "cost": 0.0015,
+                "total_tokens": 1010
+            }
+        )
+    
+    # Insert a massive call
+    r2 = client.post(
+        "/api/v1/ingest",
+        json={
+            "task_name": "anomaly_task",
+            "model": "gpt-4-turbo",
+            "prompt": "Huge Hello",
+            "response": "Huge World",
+            "latency_ms": 1000,
+            "prompt_tokens": 100000,
+            "completion_tokens": 10000,
+            "cost": 2.00
+        }
+    )
+    assert r2.status_code == 201, r2.text
+    
+    response = client.get("/api/v1/analytics/anomalies")
+    assert response.status_code == 200
+    anomalies = response.json()
+    print("ALL CALLS:", client.get("/api/v1/calls").json())
+    print("ANOMALIES:", anomalies)
+    assert len(anomalies) >= 1
+    # Find our specific anomaly
+    anomaly = next((a for a in anomalies if a["task_name"] == "anomaly_task"), None)
+    assert anomaly is not None
+    assert anomaly["severity"] in ["HIGH", "MEDIUM"]

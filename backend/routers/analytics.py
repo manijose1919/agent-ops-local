@@ -6,6 +6,7 @@ from typing import Dict
 from backend.database import get_db
 from backend.models import APICall
 from backend.schemas import AnalyticsSummary
+from backend import schemas
 
 router = APIRouter()
 
@@ -51,3 +52,44 @@ def get_analytics_summary(db: Session = Depends(get_db)):
         by_task=by_task,
         by_agent=by_agent
     )
+
+from typing import List
+
+@router.get("/anomalies", response_model=List[schemas.AnomalyReport])
+def get_anomalies(db: Session = Depends(get_db)):
+    """Detect calls that cost 2x more than the average for their task."""
+    calls = db.query(APICall).all()
+    if not calls:
+        return []
+        
+    # Calculate averages per task
+    task_stats = {}
+    for c in calls:
+        if c.task_name not in task_stats:
+            task_stats[c.task_name] = {"cost": [], "tokens": []}
+        task_stats[c.task_name]["cost"].append(c.cost)
+        task_stats[c.task_name]["tokens"].append(c.total_tokens)
+        
+    averages = {}
+    for task, stats in task_stats.items():
+        averages[task] = {
+            "avg_cost": sum(stats["cost"]) / len(stats["cost"]),
+            "avg_tokens": sum(stats["tokens"]) / len(stats["tokens"])
+        }
+        
+    anomalies = []
+    for c in calls:
+        avg = averages[c.task_name]
+        # Flag if cost is > 2x average AND cost > $0.001 (ignore tiny anomalies)
+        if c.cost > avg["avg_cost"] * 2 and c.cost > 0.001:
+            anomalies.append({
+                "call_id": c.id,
+                "task_name": c.task_name,
+                "cost": c.cost,
+                "avg_cost": avg["avg_cost"],
+                "total_tokens": c.total_tokens,
+                "avg_tokens": avg["avg_tokens"],
+                "severity": "HIGH" if c.cost > avg["avg_cost"] * 5 else "MEDIUM"
+            })
+            
+    return anomalies

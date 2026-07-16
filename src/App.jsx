@@ -7,17 +7,20 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 function App() {
   const [summary, setSummary] = useState(null);
   const [calls, setCalls] = useState([]);
+  const [anomalies, setAnomalies] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [summaryRes, callsRes] = await Promise.all([
+        const [summaryRes, callsRes, anomaliesRes] = await Promise.all([
           axios.get(`${API_BASE}/api/v1/analytics/summary`),
-          axios.get(`${API_BASE}/api/v1/calls`)
+          axios.get(`${API_BASE}/api/v1/calls`),
+          axios.get(`${API_BASE}/api/v1/analytics/anomalies`)
         ]);
         setSummary(summaryRes.data);
         setCalls(callsRes.data);
+        setAnomalies(anomaliesRes.data);
       } catch (err) {
         console.error("Error fetching data:", err);
       } finally {
@@ -76,6 +79,36 @@ function App() {
           <p className="text-4xl font-bold">{summary?.avg_latency_ms.toFixed(0) || 0} ms</p>
         </div>
       </div>
+
+      {/* Anomalies Section */}
+      {anomalies.length > 0 && (
+        <div className="bg-red-900/20 border border-red-700/50 rounded-xl p-6 mb-8 shadow-lg">
+          <div className="flex items-center gap-2 text-red-400 mb-4">
+            <Activity />
+            <h2 className="text-xl font-bold">Cost Anomalies Detected ({anomalies.length})</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {anomalies.map((anomaly) => (
+              <div key={anomaly.call_id} className="bg-red-950/50 p-4 rounded-lg border border-red-800/50">
+                <div className="flex justify-between items-start mb-2">
+                  <span className="font-semibold text-red-300">{anomaly.task_name}</span>
+                  <span className="px-2 py-1 text-xs font-bold rounded-full bg-red-800 text-red-200">
+                    {anomaly.severity}
+                  </span>
+                </div>
+                <p className="text-sm text-red-200">
+                  Cost: <span className="font-bold text-red-400">${anomaly.cost.toFixed(4)}</span> 
+                  <span className="text-red-400/70 ml-1">(Avg: ${anomaly.avg_cost.toFixed(4)})</span>
+                </p>
+                <p className="text-sm text-red-200">
+                  Tokens: <span className="font-bold text-red-400">{anomaly.total_tokens}</span>
+                  <span className="text-red-400/70 ml-1">(Avg: {anomaly.avg_tokens.toFixed(0)})</span>
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Calls Table */}
       <div className="bg-slate-800 rounded-xl border border-slate-700 shadow-lg overflow-hidden">
