@@ -87,6 +87,7 @@ function App() {
             <thead className="bg-slate-900 text-slate-400 text-sm uppercase">
               <tr>
                 <th className="p-4 font-medium">Task Name</th>
+                <th className="p-4 font-medium">Agent ID</th>
                 <th className="p-4 font-medium">Model</th>
                 <th className="p-4 font-medium">Tokens</th>
                 <th className="p-4 font-medium">Latency</th>
@@ -97,6 +98,7 @@ function App() {
               {calls.map((call) => (
                 <tr key={call.id} className="hover:bg-slate-700/50 transition-colors">
                   <td className="p-4 font-medium text-blue-300">{call.task_name}</td>
+                  <td className="p-4 text-slate-400">{call.agent_id || '-'}</td>
                   <td className="p-4">
                     <span className="px-2 py-1 bg-slate-700 rounded-md text-xs">{call.model}</span>
                   </td>
@@ -107,7 +109,7 @@ function App() {
               ))}
               {calls.length === 0 && (
                 <tr>
-                  <td colSpan="5" className="p-8 text-center text-slate-500">
+                  <td colSpan="6" className="p-8 text-center text-slate-500">
                     No API calls logged yet. Route your traffic through /api/v1/ingest
                   </td>
                 </tr>

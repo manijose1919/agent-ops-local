@@ -21,6 +21,7 @@ def ingest_telemetry(call_data: APICallCreate, db: Session = Depends(get_db)):
 
     db_call = APICall(
         session_id=call_data.session_id,
+        agent_id=call_data.agent_id,
         task_name=call_data.task_name,
         model=call_data.model,
         provider=call_data.provider,

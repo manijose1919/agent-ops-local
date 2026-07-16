@@ -19,6 +19,7 @@ class APICall(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     session_id = Column(String, ForeignKey("sessions.id"), index=True, nullable=True)
+    agent_id = Column(String, index=True, nullable=True) # ID of the autonomous agent
     task_name = Column(String, index=True) # e.g., "summarize_doc", "generate_code"
     
     model = Column(String, index=True) # e.g., "gpt-4-turbo"

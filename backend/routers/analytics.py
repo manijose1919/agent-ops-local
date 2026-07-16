@@ -34,11 +34,20 @@ def get_analytics_summary(db: Session = Depends(get_db)):
     
     by_task: Dict[str, float] = {task: cost for task, cost in task_stats if task}
     
+    # Cost by agent
+    agent_stats = db.query(
+        APICall.agent_id,
+        func.sum(APICall.cost)
+    ).filter(APICall.agent_id != None).group_by(APICall.agent_id).all()
+    
+    by_agent: Dict[str, float] = {agent: cost for agent, cost in agent_stats if agent}
+    
     return AnalyticsSummary(
         total_calls=total_calls,
         total_cost=total_cost,
         avg_latency_ms=avg_latency,
         total_tokens=total_tokens,
         by_model=by_model,
-        by_task=by_task
+        by_task=by_task,
+        by_agent=by_agent
     )
