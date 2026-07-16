@@ -93,3 +93,36 @@ def get_anomalies(db: Session = Depends(get_db)):
             })
             
     return anomalies
+
+@router.get("/export")
+def export_calls(db: Session = Depends(get_db)):
+    """Export all telemetry data as a JSON file for fine-tuning or backup."""
+    calls = db.query(APICall).all()
+    
+    # Return as JSON file attachment
+    from fastapi.responses import JSONResponse
+    
+    return JSONResponse(
+        content=[
+            {
+                "id": c.id,
+                "session_id": c.session_id,
+                "agent_id": c.agent_id,
+                "task_name": c.task_name,
+                "model": c.model,
+                "provider": c.provider,
+                "prompt": c.prompt,
+                "response": c.response,
+                "prompt_tokens": c.prompt_tokens,
+                "completion_tokens": c.completion_tokens,
+                "total_tokens": c.total_tokens,
+                "cost": c.cost,
+                "latency_ms": c.latency_ms,
+                "created_at": c.created_at.isoformat() if c.created_at else None
+            }
+            for c in calls
+        ],
+        headers={
+            "Content-Disposition": "attachment; filename=agentops_export.json"
+        }
+    )

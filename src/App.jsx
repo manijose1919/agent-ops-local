@@ -40,12 +40,20 @@ function App() {
 
   return (
     <div className="min-h-screen bg-slate-900 p-8 text-slate-100 font-sans">
-      <header className="mb-8 border-b border-slate-700 pb-4">
-        <h1 className="text-3xl font-bold text-blue-400 flex items-center gap-2">
-          <Activity className="w-8 h-8" />
-          AgentOpsLocal Dashboard
-        </h1>
-        <p className="text-slate-400 mt-2">Real-time LLM Telemetry & Cost Analyzer</p>
+      <header className="mb-8 border-b border-slate-700 pb-4 flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-blue-400 flex items-center gap-2">
+            <Activity className="w-8 h-8" />
+            AgentOpsLocal Dashboard
+          </h1>
+          <p className="text-slate-400 mt-2">Real-time LLM Telemetry & Cost Analyzer</p>
+        </div>
+        <button 
+          onClick={() => window.open(`${API_BASE}/api/v1/analytics/export`, '_blank')}
+          className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-lg"
+        >
+          Export Data (JSON)
+        </button>
       </header>
 
       {/* KPI Cards */}

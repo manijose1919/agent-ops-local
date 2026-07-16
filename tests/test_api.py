@@ -113,3 +113,13 @@ def test_get_anomalies():
     anomaly = next((a for a in anomalies if a["task_name"] == "anomaly_task"), None)
     assert anomaly is not None
     assert anomaly["severity"] in ["HIGH", "MEDIUM"]
+
+def test_export_calls():
+    response = client.get("/api/v1/analytics/export")
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)
+    assert len(data) >= 1
+    # Check headers
+    assert "attachment" in response.headers["content-disposition"]
+    assert "agentops_export.json" in response.headers["content-disposition"]
