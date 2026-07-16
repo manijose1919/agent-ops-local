@@ -6,6 +6,8 @@ from sqlalchemy import func
 from backend.database import engine, Base, get_db
 from backend import models, schemas
 
+from backend.routers import ingest, analytics
+
 # Create all database tables
 Base.metadata.create_all(bind=engine)
 
@@ -23,6 +25,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(ingest.router, prefix="/api/v1")
+app.include_router(analytics.router, prefix="/api/v1/analytics")
 
 @app.get("/")
 def read_root():

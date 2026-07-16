@@ -15,12 +15,13 @@ class APICallCreate(BaseModel):
     cost: float = Field(0.0, description="Calculated cost of the call in USD")
     latency_ms: float = Field(0.0, description="Latency of the API call in milliseconds")
 
+from pydantic import ConfigDict
+
 class APICallResponse(APICallCreate):
     id: int
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class AnalyticsSummary(BaseModel):
     total_calls: int
