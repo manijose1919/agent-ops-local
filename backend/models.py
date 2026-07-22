@@ -24,6 +24,7 @@ class APICall(Base):
     
     model = Column(String, index=True) # e.g., "gpt-4-turbo"
     provider = Column(String, index=True, nullable=True) # e.g., "openai"
+    environment = Column(String, default="dev")
     
     prompt = Column(JSON) # Array of message dicts or string
     response = Column(Text)
