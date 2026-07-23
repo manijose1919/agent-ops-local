@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agentops-local"
+version = "0.1.0"
+description = "Zero-dependency client SDK for AgentOpsLocal — auto-instruments OpenAI & Anthropic calls and streams LLM telemetry (tokens, latency, cost) to your local AgentOpsLocal backend."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "Joseph Maniate" }]
+keywords = ["llm", "observability", "telemetry", "openai", "anthropic", "cost-tracking", "ai-agents"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+# No required runtime dependencies — transport uses the standard library.
+dependencies = []
+
+[project.optional-dependencies]
+openai = ["openai>=1.0"]
+anthropic = ["anthropic>=0.18"]
+dev = ["pytest>=8.0", "fastapi>=0.109", "httpx>=0.26", "sqlalchemy>=2.0", "pydantic>=2.6"]
+
+[project.urls]
+Homepage = "https://github.com/manijose1919/agent-ops-local"
+Repository = "https://github.com/manijose1919/agent-ops-local"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["agentops_local*"]

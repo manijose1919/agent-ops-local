@@ -161,6 +161,9 @@ agent-ops-local/
 ├── src/                     # React + Vite dashboard
 │   ├── App.jsx              # Dashboard UI (KPIs, charts, table, traces)
 │   └── main.jsx
+├── sdk/                     # agentops-local Python SDK (auto-instrumentation)
+│   ├── agentops_local/      # package: config, context, pricing, transport, instrument/
+│   └── tests/               # pytest SDK tests
 ├── tests/                   # pytest backend tests
 ├── docker-compose.yml       # Full-stack orchestration
 ├── Dockerfile.backend
@@ -170,9 +173,41 @@ agent-ops-local/
 
 ## Integrating Your Agent
 
-Log a call from **any** language by POSTing to `/api/v1/ingest` whenever an LLM request completes.
+### Python SDK (recommended)
 
-### Python
+The [`agentops-local`](./sdk) SDK **auto-instruments** your OpenAI and Anthropic calls — one `init()` call, no changes to your existing code:
+
+```bash
+pip install ./sdk[openai]      # or [anthropic]
+```
+
+```python
+import agentops_local as ao
+
+ao.init(
+    task="summarize_doc",
+    prices={  # $ per 1M tokens; unknown models record cost=0
+        "gpt-4o":          {"input": 2.50,  "output": 10.00},
+        "claude-opus-4-8": {"input": 15.00, "output": 75.00},
+    },
+)
+
+# Your existing call — captured automatically:
+client.chat.completions.create(model="gpt-4o", messages=[...])
+
+# Group calls into tasks and session traces:
+with ao.session("run-abc123"):
+    with ao.task("plan_step"):
+        client.messages.create(...)
+```
+
+Telemetry is sent from a background thread and **never blocks or breaks your app** — if the backend is down, it warns once and drops the data. See the [SDK README](./sdk/README.md) for details.
+
+### Manual (any language)
+
+Prefer to log calls yourself? POST to `/api/v1/ingest` whenever an LLM request completes.
+
+#### Python
 
 ```python
 import requests
@@ -196,7 +231,7 @@ def log_llm_call(task_name, model, prompt, response, tokens, cost, latency_ms):
 
 > **Note:** the endpoint is `/api/v1/ingest` and the token field is `total_tokens` (not `/ingest` / `tokens_used`). Only `task_name`, `model`, `prompt`, and `response` are required; everything else is optional.
 
-### Node.js
+#### Node.js
 
 ```javascript
 await fetch("http://localhost:8000/api/v1/ingest", {
@@ -270,7 +305,7 @@ The GitHub Actions workflow (`.github/workflows/main.yml`) runs the backend test
 
 ## Roadmap
 
-- [ ] **Official Python SDK** — auto-instrument OpenAI/Anthropic clients so telemetry is captured with one `init()` call and no code changes.
+- [x] **Official Python SDK** — auto-instrument OpenAI/Anthropic clients so telemetry is captured with one `init()` call and no code changes. → [`sdk/`](./sdk)
 - [ ] **Server-side pricing engine** — compute cost from token counts and a model price table, so the numbers are authoritative.
 - [ ] **API-key authentication** — secure the ingestion endpoint for shared/team deployments.
 - [ ] **Batch ingestion** — a `/ingest/batch` endpoint for high-throughput agents.

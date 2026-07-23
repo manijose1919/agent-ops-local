@@ -26,7 +26,11 @@ jobs:
     - name: Run Backend Tests
       run: |
         pytest tests/
-        
+
+    - name: Run SDK Tests
+      run: |
+        pytest sdk/
+
     - name: Set up Node.js
       uses: actions/setup-node@v3
       with:
