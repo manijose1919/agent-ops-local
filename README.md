@@ -59,9 +59,7 @@ It runs entirely on your machine. No accounts, no cloud, no data leaving your la
 
 ## Screenshots
 
-> _Add a screenshot of the dashboard here._ Place an image at `docs/screenshot.png` and it will render below:
-
-<!-- ![AgentOpsLocal Dashboard](docs/screenshot.png) -->
+![AgentOpsLocal dashboard showing cost KPIs, a cost-over-time chart, cost-by-model breakdown, and anomaly detection](docs/screenshot.png)
 
 ## Tech Stack
 
