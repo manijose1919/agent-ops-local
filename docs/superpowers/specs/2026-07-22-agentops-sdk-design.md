@@ -1,7 +1,7 @@
 # AgentOpsLocal Python SDK — Design
 
 **Date:** 2026-07-22
-**Status:** Approved (pending spec review)
+**Status:** ✅ Implemented — see [`sdk/`](../../../sdk) (commit adds config, context, pricing, transport, instrumentation + 15 tests)
 **Component:** `agentops-local` Python SDK
 
 ## Goal
