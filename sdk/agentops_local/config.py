@@ -28,6 +28,7 @@ class Config:
     prices: PriceMap = field(default_factory=dict)
     enabled: bool = True
     timeout: float = 5.0
+    api_key: str = ""
 
     @property
     def ingest_url(self) -> str:

@@ -292,7 +292,10 @@ Copy `.env.example` to `.env` and adjust as needed. All variables are optional �
 | `PORT` | `8000` | Backend port. |
 | `DATABASE_URL` | `sqlite:///./agent_ops.db` | SQLAlchemy connection string. Set to a `postgresql://…` URL to use PostgreSQL. |
 | `DAILY_BUDGET` | `0` (disabled) | Max USD spend per day. When `> 0`, ingestion returns `429` once exceeded, and the dashboard shows a budget progress bar. |
+| `API_SECRET_KEY` | empty (open) | When set, `/api/v1/*` requires `X-API-Key` or `Authorization: Bearer`. Pass the same value to the SDK as `api_key=` / `AGENTOPS_API_KEY` and to the dashboard as `VITE_API_SECRET_KEY`. |
+| `CORS_ORIGINS` | `http://localhost:5173` | Comma-separated browser origins allowed to call the API. |
 | `VITE_API_BASE_URL` | `http://localhost:8000` | Backend URL the frontend calls. |
+| `VITE_API_SECRET_KEY` | empty | Dashboard copy of `API_SECRET_KEY` (baked in at Vite build time). |
 
 ## Running Tests
 
@@ -306,8 +309,8 @@ The GitHub Actions workflow (`.github/workflows/main.yml`) runs the backend test
 ## Roadmap
 
 - [x] **Official Python SDK** — auto-instrument OpenAI/Anthropic clients so telemetry is captured with one `init()` call and no code changes. → [`sdk/`](./sdk)
+- [x] **API-key authentication** — optional `API_SECRET_KEY` on ingest and analytics; unset keeps the zero-config local default.
 - [ ] **Server-side pricing engine** — compute cost from token counts and a model price table, so the numbers are authoritative.
-- [ ] **API-key authentication** — secure the ingestion endpoint for shared/team deployments.
 - [ ] **Batch ingestion** — a `/ingest/batch` endpoint for high-throughput agents.
 - [ ] **Latency percentiles** — p50 / p95 / p99 alongside averages.
 - [ ] **Error & retry tracking** — capture failed calls, error types, and retries.

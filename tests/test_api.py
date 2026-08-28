@@ -123,3 +123,41 @@ def test_export_calls():
     # Check headers
     assert "attachment" in response.headers["content-disposition"]
     assert "agentops_export.json" in response.headers["content-disposition"]
+
+
+def test_api_key_optional_when_unset():
+    """Zero-config local use: no key configured, ingest stays open."""
+    response = client.post(
+        "/api/v1/ingest",
+        json={"task_name": "open", "model": "m", "prompt": "p", "response": "r"},
+    )
+    assert response.status_code == 201
+
+
+def test_api_key_required_when_configured(monkeypatch):
+    monkeypatch.setenv("API_SECRET_KEY", "test-secret")
+    denied = client.post(
+        "/api/v1/ingest",
+        json={"task_name": "locked", "model": "m", "prompt": "p", "response": "r"},
+    )
+    assert denied.status_code == 401
+
+    wrong = client.post(
+        "/api/v1/ingest",
+        json={"task_name": "locked", "model": "m", "prompt": "p", "response": "r"},
+        headers={"X-API-Key": "nope"},
+    )
+    assert wrong.status_code == 401
+
+    ok = client.post(
+        "/api/v1/ingest",
+        json={"task_name": "locked", "model": "m", "prompt": "p", "response": "r"},
+        headers={"X-API-Key": "test-secret"},
+    )
+    assert ok.status_code == 201
+
+    bearer = client.get(
+        "/api/v1/analytics/summary",
+        headers={"Authorization": "Bearer test-secret"},
+    )
+    assert bearer.status_code == 200

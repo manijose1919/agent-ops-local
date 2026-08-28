@@ -29,9 +29,16 @@ _STOP = object()
 class Transport:
     """A background worker that POSTs telemetry payloads to the backend."""
 
-    def __init__(self, ingest_url: str, timeout: float = 5.0, max_queue: int = 10_000):
+    def __init__(
+        self,
+        ingest_url: str,
+        timeout: float = 5.0,
+        max_queue: int = 10_000,
+        api_key: str = "",
+    ):
         self._ingest_url = ingest_url
         self._timeout = timeout
+        self._api_key = api_key
         self._queue: "queue.Queue" = queue.Queue(maxsize=max_queue)
         self._warned = False
         self._dropped = 0
@@ -61,10 +68,13 @@ class Transport:
 
     def _send(self, payload: dict) -> None:
         data = json.dumps(payload).encode("utf-8")
+        headers = {"Content-Type": "application/json"}
+        if self._api_key:
+            headers["X-API-Key"] = self._api_key
         req = urllib.request.Request(
             self._ingest_url,
             data=data,
-            headers={"Content-Type": "application/json"},
+            headers=headers,
             method="POST",
         )
         try:

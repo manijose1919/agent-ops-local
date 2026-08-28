@@ -4,6 +4,11 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsToolti
 import { Activity, DollarSign, Clock, Layers, ChevronDown, ChevronRight, X, ListTree } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+const API_KEY = import.meta.env.VITE_API_SECRET_KEY || '';
+const api = axios.create({
+  baseURL: API_BASE,
+  headers: API_KEY ? { 'X-API-Key': API_KEY } : {},
+});
 
 function App() {
   const [summary, setSummary] = useState(null);
@@ -17,7 +22,7 @@ function App() {
 
   const viewSessionTrace = async (sessionId) => {
     try {
-      const res = await axios.get(`${API_BASE}/api/v1/analytics/sessions/${sessionId}`);
+      const res = await api.get(`/api/v1/analytics/sessions/${sessionId}`);
       setSessionCalls(res.data);
       setActiveSession(sessionId);
     } catch (err) {
@@ -43,9 +48,9 @@ function App() {
       try {
         const params = selectedEnv ? { env: selectedEnv } : {};
         const [summaryRes, callsRes, anomaliesRes] = await Promise.all([
-          axios.get(`${API_BASE}/api/v1/analytics/summary`, { params }),
-          axios.get(`${API_BASE}/api/v1/calls`, { params }),
-          axios.get(`${API_BASE}/api/v1/analytics/anomalies`, { params })
+          api.get(`/api/v1/analytics/summary`, { params }),
+          api.get(`/api/v1/calls`, { params }),
+          api.get(`/api/v1/analytics/anomalies`, { params })
         ]);
         setSummary(summaryRes.data);
         setCalls(callsRes.data);
@@ -89,7 +94,20 @@ function App() {
             <option value="prod">Production</option>
           </select>
           <button 
-            onClick={() => window.open(`${API_BASE}/api/v1/analytics/export${selectedEnv ? '?env=' + selectedEnv : ''}`, '_blank')}
+            onClick={async () => {
+              try {
+                const qs = selectedEnv ? `?env=${encodeURIComponent(selectedEnv)}` : '';
+                const res = await api.get(`/api/v1/analytics/export${qs}`, { responseType: 'blob' });
+                const url = URL.createObjectURL(res.data);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'agentops_export.json';
+                a.click();
+                URL.revokeObjectURL(url);
+              } catch (err) {
+                console.error('Export failed:', err);
+              }
+            }}
             className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-lg"
           >
             Export Data (JSON)
