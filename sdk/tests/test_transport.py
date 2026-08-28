@@ -45,6 +45,32 @@ def test_enqueue_posts_payload_in_background():
         server.shutdown()
 
 
+def test_enqueue_sends_api_key_header():
+    _CaptureHandler.received.clear()
+    _CaptureHandler.headers_seen = []
+
+    class _KeyHandler(_CaptureHandler):
+        def do_POST(self):
+            _CaptureHandler.headers_seen.append(self.headers.get("X-API-Key"))
+            super().do_POST()
+
+    server = HTTPServer(("127.0.0.1", 0), _KeyHandler)
+    port = server.server_address[1]
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    try:
+        transport = Transport(
+            f"http://127.0.0.1:{port}/api/v1/ingest",
+            timeout=2,
+            api_key="k1",
+        )
+        transport.enqueue({"task_name": "t", "model": "m"})
+        transport.flush()
+        assert _CaptureHandler.headers_seen == ["k1"]
+        transport.shutdown()
+    finally:
+        server.shutdown()
+
+
 def test_backend_down_never_raises():
     # Nothing is listening on this port.
     transport = Transport(f"http://127.0.0.1:{_free_port()}/api/v1/ingest", timeout=1)

@@ -22,6 +22,7 @@ ao.init(
     base_url="http://localhost:8000",
     task="summarize_doc",
     environment="prod",
+    api_key="...",  # or AGENTOPS_API_KEY; required when the backend sets API_SECRET_KEY
     prices={  # $ per 1M tokens; unknown models record cost=0
         "gpt-4o":          {"input": 2.50,  "output": 10.00},
         "claude-opus-4-8": {"input": 15.00, "output": 75.00},

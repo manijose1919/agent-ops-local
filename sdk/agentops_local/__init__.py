@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import atexit
 import logging
+import os
 from typing import Optional
 
 from . import instrument
@@ -36,6 +37,7 @@ def init(
     prices: Optional[PriceMap] = None,
     enabled: bool = True,
     timeout: float = 5.0,
+    api_key: Optional[str] = None,
 ) -> None:
     """Configure the SDK and auto-instrument installed LLM providers.
 
@@ -49,6 +51,7 @@ def init(
             not listed record ``cost=0`` (with a one-time warning).
         enabled: Master switch. ``AGENTOPS_ENABLED=0`` forces it off.
         timeout: Per-request HTTP timeout for telemetry POSTs, in seconds.
+        api_key: Backend ``API_SECRET_KEY``. Falls back to ``AGENTOPS_API_KEY``.
     """
     global _atexit_registered
 
@@ -61,6 +64,7 @@ def init(
         prices=prices or {},
         enabled=enabled,
         timeout=timeout,
+        api_key=(api_key if api_key is not None else os.getenv("AGENTOPS_API_KEY", "")).strip(),
     )
     set_config(config)
 
@@ -72,7 +76,7 @@ def init(
     existing = get_transport()
     if existing is not None:
         existing.shutdown()
-    set_transport(Transport(config.ingest_url, timeout=config.timeout))
+    set_transport(Transport(config.ingest_url, timeout=config.timeout, api_key=config.api_key))
 
     patched = instrument.patch_all()
     logger.debug("agentops_local: instrumented providers: %s", patched or "none")
